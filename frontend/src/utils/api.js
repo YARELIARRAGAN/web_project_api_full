@@ -1,0 +1,106 @@
+ class Api {
+    constructor(options) {
+        this._baseUrl = options.baseUrl;
+        this._cardsHeaders = options.headers;
+    }
+ 
+     _request(endpoint, options = {}) {
+        return fetch (`${this._baseUrl}${endpoint}`, {
+            headers: this._cardsHeaders,
+            ...options
+        })
+        .then(this._checkResponse)
+    }
+
+
+    _checkResponse(res) {
+        if(res.ok) {
+            return res.json();
+        }
+        return Promise.reject(`Error: ${res.status}`);
+    }
+    
+    getInitialCards() {
+        return this._request('cards');
+    }
+
+    editUserInfo(userData) {
+        return this._request('users/me', {
+            method: "PATCH", 
+            headers: {...this._cardsHeaders},
+            body: JSON.stringify(userData)
+        })
+    }
+
+    editUserAvatar(formData) {
+        return this._request('users/me/avatar', {
+            method:"PATCH", 
+            headers: {...this._cardsHeaders}, 
+
+            body: JSON.stringify({
+                avatar: formData.avatar
+            })
+        })
+    }
+
+    addNewCard(cardData) {
+        return this._request('cards', {
+            method: "POST", 
+            headers: {
+                ...this._cardsHeaders,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(cardData)
+        })
+    }
+
+    deleteCard(cardId) {
+        return this._request(`cards/${cardId}`, {
+            method: "DELETE", 
+            headers: {
+                ...this._cardsHeaders
+            }
+        })
+    }
+
+    addLike(cardId) {
+        return this._request(`cards/${cardId}/likes`, {
+            method: "PUT", 
+            headers: {
+                ...this._cardsHeaders
+            }
+        })
+    }
+
+    removeLike(cardId) {
+        return this._request(`cards/${cardId}/likes`, {
+            method: "DELETE", 
+            headers: {
+                ...this._cardsHeaders
+            }
+        })
+    }
+    
+    changeLikeCardStatus(cardId, isLiked) {
+        if(isLiked) {
+            return this.addLike(cardId);
+        } else {
+            return this.removeLike(cardId);
+        }
+    }
+
+ 
+}
+
+//Instanciar la clase para poderla exportar
+
+const api =  new Api({
+    baseUrl: "https://api.yam.crabdance.com/",
+    headers: {
+        Authorization: "90b1a1ac-7ed0-4d39-b23d-5a18dc5240d7",
+        "Content-Type": "application/json"
+    }
+});
+
+//Exportar instancia
+export default api;
